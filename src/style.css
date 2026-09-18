@@ -52,3 +52,27 @@ body {
   height: 100%;
   width: 100%;
 }
+
+/*
+ * Host page modes. `html.developer` is set from `?developer=true` before first paint (index.html).
+ * Basic mode shows only the connect button and the frame.
+ */
+html:not(.developer) [data-developer] {
+  display: none !important;
+}
+html.developer [data-basic] {
+  display: none !important;
+}
+html:not(.developer) .demo-main {
+  min-height: 100%;
+  justify-content: center;
+}
+html:not(.developer) .demo-grid {
+  grid-template-columns: minmax(0, 460px);
+  justify-content: center;
+}
+@media (min-width: 64rem) {
+  html.developer .demo-grid {
+    grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
+  }
+}

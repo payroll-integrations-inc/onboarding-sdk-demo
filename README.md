@@ -4,7 +4,12 @@ Public, credential-free walkthrough of the Payroll Integrations onboarding SDK.
 
 **Live:** https://sdk-demo.payrollintegrationsdemo.com
 
-The page has one button, **Connect with Payroll Integrations**. Clicking it calls `bootstrap()` from the
+The page has one button, **Connect with Payroll Integrations**, and nothing else. Append
+`?developer=true` for the developer view: scenario picker, status, and a panel showing SDK callbacks,
+postMessage traffic, emulated API calls and the integration snippet
+(https://sdk-demo.payrollintegrationsdemo.com/?developer=true).
+
+Clicking the button calls `bootstrap()` from the
 *real, published* [`@payroll-integrations/onboarding-sdk`](https://www.npmjs.com/package/@payroll-integrations/onboarding-sdk).
 Everything behind the iframe the SDK mounts is emulated on the same site:
 
@@ -27,6 +32,8 @@ trick makes `pnpm dev` work on `http://localhost:5173`.
 
 ## Things to try
 
+Scenarios are chosen in the developer view (`?developer=true`); inputs work in both modes.
+
 | Scenario / input | What happens |
 |---|---|
 | Happy path, **Acme Payroll** | Credentials form → consent link + confirmation → billing → complete. `callbacks.success` fires with the plan sponsor id. |
@@ -38,9 +45,11 @@ trick makes `pnpm dev` work on `http://localhost:5173`.
 | Card `4000 0000 0000 0002` | Declined payment toast; any other 16 digits succeed. |
 | Reload the frame mid-flow | The emulated session survives (sessionStorage) and the start screen resumes where you left off. |
 
-The developer panel beside the frame shows the SDK callbacks, the raw `postMessage` traffic in both
-directions, every emulated API call with request/response bodies, and the copy-paste integration snippet
-(npm and CDN flavours).
+In the developer view the panel beside the frame shows the SDK callbacks, the raw `postMessage` traffic
+in both directions, every emulated API call with request/response bodies, and the copy-paste integration
+snippet (npm and CDN flavours). The mode is decided by an inline script in `index.html` that sets
+`html.developer` before first paint; elements marked `data-developer` only render in that mode and
+`data-basic` elements only in basic mode (`src/style.css`).
 
 ## SDK behaviour surfaced by the demo
 
