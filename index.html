@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Onboarding SDK demo — Payroll Integrations</title>
+    <meta
+      name="description"
+      content="Click-through demo of the Payroll Integrations onboarding SDK. The real SDK, an emulated onboarding frame and backend: no credentials, nothing leaves your browser."
+    />
+  </head>
+  <body class="min-h-full bg-base-200 text-base-content">
+    <header class="bg-base-100 border-b border-base-300">
+      <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
+        <a href="/" class="flex items-center gap-3 no-underline">
+          <img src="/assets/images/logos/PI-logo.png" alt="" class="h-9 w-9" />
+          <span class="font-semibold">Onboarding SDK demo</span>
+        </a>
+        <nav class="flex items-center gap-4 text-sm">
+          <a class="link link-hover" href="https://developer.payrollintegrations.com/sdk/usage" target="_blank" rel="noreferrer">SDK docs</a>
+          <a class="link link-hover" href="https://www.npmjs.com/package/@payroll-integrations/onboarding-sdk" target="_blank" rel="noreferrer">npm</a>
+          <a class="link link-hover" href="https://github.com/payroll-integrations-inc/onboarding-sdk-demo" target="_blank" rel="noreferrer">Source</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 flex flex-col gap-8">
+      <section class="flex flex-col gap-3 max-w-3xl">
+        <h1 class="text-3xl font-semibold m-0">Embed payroll onboarding in one call</h1>
+        <p class="m-0 text-base">
+          This page uses the published <code>@payroll-integrations/onboarding-sdk</code> exactly as a customer would. Everything behind the
+          frame is emulated: a stand-in onboarding app and an in-browser backend with fictional payroll providers. Walk through the whole
+          flow with no account and no API key.
+        </p>
+      </section>
+
+      <section class="grid gap-8 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] items-start">
+        <div class="flex flex-col gap-4">
+          <div class="card bg-base-100 shadow-sm">
+            <div class="card-body gap-4">
+              <div class="flex flex-wrap items-center gap-3">
+                <button id="connect-btn" type="button" class="btn btn-primary btn-lg flex-1 min-w-64">Connect with Payroll Integrations</button>
+              </div>
+              <label class="flex items-center justify-between gap-3 text-sm">
+                <span class="text-muted">Scenario</span>
+                <select id="scenario" class="select select-sm w-56">
+                  <option value="happy" selected>Happy path</option>
+                  <option value="select-recordkeeper">Recordkeeper not preselected</option>
+                  <option value="connect-fail">Payroll connection fails</option>
+                  <option value="bad-token">Invalid onboarding token</option>
+                </select>
+              </label>
+              <div class="flex items-center justify-between gap-3 text-sm">
+                <span class="text-muted">Status</span>
+                <span id="status" class="badge badge-ghost">Idle</span>
+              </div>
+              <div class="rounded-box border border-base-300 bg-base-200/60 min-h-[600px] w-full max-w-[420px] mx-auto flex items-center justify-center overflow-hidden">
+                <!-- The SDK mounts its 420x600 iframe here. -->
+                <div id="pi-host" class="empty:before:content-['The_onboarding_frame_appears_here'] empty:before:text-sm empty:before:text-muted"></div>
+              </div>
+            </div>
+          </div>
+          <div class="text-xs text-muted flex flex-col gap-1">
+            <p class="m-0">
+              Things to try: Acme Payroll with Company ID <code>FAIL0000</code> or API key <code>fail</code> to see a connection error, Northwind
+              HR for the OAuth popup, Contoso Pay to skip billing, and card <code>4000 0000 0000 0002</code> for a declined payment.
+            </p>
+            <p class="m-0">Reload the frame (right-click → Reload frame) mid-flow to see the session resume where you left off.</p>
+          </div>
+        </div>
+
+        <aside class="flex flex-col gap-3 min-w-0">
+          <details class="lg:hidden collapse collapse-arrow bg-base-100 border border-base-300">
+            <summary class="collapse-title font-medium">Developer panel</summary>
+            <div class="collapse-content" id="dev-panel-mobile"></div>
+          </details>
+          <div class="hidden lg:block">
+            <h2 class="text-lg font-semibold m-0 mb-2">Developer panel</h2>
+            <div id="dev-panel"></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="grid gap-4 md:grid-cols-3 text-sm">
+        <div class="card bg-base-100 border border-base-300">
+          <div class="card-body gap-2">
+            <h3 class="card-title text-base">Real SDK</h3>
+            <p class="m-0 text-muted">The button calls <code>bootstrap()</code> from npm. It mounts the iframe, posts the token and filters replies by origin, unchanged.</p>
+          </div>
+        </div>
+        <div class="card bg-base-100 border border-base-300">
+          <div class="card-body gap-2">
+            <h3 class="card-title text-base">Emulated frame</h3>
+            <p class="m-0 text-muted">A stand-in for the hosted onboarding app at <code>/link/start</code>: same screens, same server-driven step definitions, same messages back to the SDK.</p>
+          </div>
+        </div>
+        <div class="card bg-base-100 border border-base-300">
+          <div class="card-body gap-2">
+            <h3 class="card-title text-base">Emulated backend</h3>
+            <p class="m-0 text-muted">An in-browser implementation of the onboarding API with fictional providers. No network calls, no data collected.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="max-w-6xl mx-auto px-4 py-8 text-xs text-muted">
+      <p class="m-0">Payroll platform and recordkeeper names shown are fictional. © Payroll Integrations Inc.</p>
+    </footer>
+
+    <script type="module" src="/src/host/main.ts"></script>
+  </body>
+</html>

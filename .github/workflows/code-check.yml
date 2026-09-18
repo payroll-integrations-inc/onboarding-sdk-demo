@@ -1,0 +1,27 @@
+name: Code check
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main] # main is covered by the deploy workflow's build
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test -- --run
+      - run: pnpm build
+      - name: Verify build output
+        run: |
+          test -f dist/index.html
+          test -f dist/link/start.html
+          test -f dist/oauth.html
+          test -f dist/CNAME

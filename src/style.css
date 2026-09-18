@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/*
+ * Palette mirrors the real onboarding frame (pi/onboarding-ui/src/app/theme.ts):
+ * primary slate-blue ramp (500 = #476e99), green #008450, red #dc3243, blue #2177e7.
+ */
+@plugin "daisyui/index.js" {
+  themes: pi --default;
+}
+
+@plugin "daisyui/theme/index.js" {
+  name: "pi";
+  default: true;
+  color-scheme: light;
+
+  --color-base-100: #ffffff;
+  --color-base-200: #f6f8fa;
+  --color-base-300: #d3dce7;
+  --color-base-content: #1c2c3d;
+
+  --color-primary: #476e99;
+  --color-primary-content: #ffffff;
+  --color-secondary: #6a8aac;
+  --color-secondary-content: #ffffff;
+  --color-accent: #2177e7;
+  --color-accent-content: #ffffff;
+  --color-neutral: #273d54;
+  --color-neutral-content: #ffffff;
+
+  --color-info: #2177e7;
+  --color-info-content: #ffffff;
+  --color-success: #008450;
+  --color-success-content: #ffffff;
+  --color-warning: #d97706;
+  --color-warning-content: #ffffff;
+  --color-error: #dc3243;
+  --color-error-content: #ffffff;
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.375rem;
+  --radius-box: 0.5rem;
+  --border: 1px;
+}
+
+@theme {
+  --font-sans: "Helvetica Neue", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --color-muted: #6a8aac;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
