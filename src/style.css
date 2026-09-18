@@ -54,6 +54,20 @@ body {
 }
 
 /*
+ * Frame typography mirrors the hosted onboarding app (measured on dev at 420x600):
+ * 16px body text at line-height 1.125, paragraphs with 1rem vertical margins. Tailwind's
+ * default 1.5 line height made the start screen 13px taller than production, which
+ * produced a scrollbar inside the SDK's fixed 600px iframe. `:where()` keeps specificity
+ * at zero so utility classes such as `m-0` and `text-sm` still win.
+ */
+:where(#onboarding-wrapper) {
+  line-height: 1.125;
+}
+:where(#onboarding-wrapper) p {
+  margin-block: 1rem;
+}
+
+/*
  * Host page modes. `html.developer` is set from `?developer=true` before first paint (index.html).
  * Basic mode shows only the connect button and the frame.
  */
