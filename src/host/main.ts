@@ -23,7 +23,7 @@ const connectButton = query<HTMLButtonElement>(document, "#connect-btn");
 const scenarioSelect = query<HTMLSelectElement>(document, "#scenario");
 const status = query<HTMLElement>(document, "#status");
 const basicStatus = query<HTMLElement>(document, "#basic-status");
-const panel: DevPanel | undefined = developerMode ? createDevPanel(query(document, "#dev-panel")) : undefined;
+const panel: DevPanel | undefined = developerMode ? createDevPanel(query(document, "#dev-panel"), frameHost) : undefined;
 
 function setStatus(text: string, tone: "neutral" | "success" | "error" = "neutral") {
   status.textContent = text;
