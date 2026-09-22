@@ -22,6 +22,38 @@ Everything behind the iframe the SDK mounts is emulated on the same site:
 Nothing leaves the browser. There is no analytics, no network traffic beyond loading the static site, and
 all provider and recordkeeper names are fictional.
 
+## Status (2026-09-22)
+
+The frame and backend above (`src/frame/**`, `src/mock/**`) are an **interim stopgap**, not the long-term
+design. [PI-15486](https://payroll-integrations.atlassian.net/browse/PI-15486) is porting the real
+`pi/onboarding-ui` Angular app into a `sandbox` build configuration — its own HTTP layer swapped for an
+in-browser emulation — deployed to its own origin (`sandbox.secure.payrollintegrationsdemo.com`). Once that
+ships, this repo's phase 2 is: point `frameHost` at the sandbox origin, delete `src/frame/**` and
+`src/mock/**` entirely, and this demo embeds the real onboarding UI instead of a hand-ported copy.
+
+Current state of that work:
+
+- **Code: done.** [pi#6513](https://github.com/payroll-integrations-inc/pi/pull/6513) (draft) has the sandbox
+  build configuration, emulated backend, and sandbox-only OAuth/billing screens. 459 unit tests, 6 Playwright
+  e2e specs (run live, not just written), lint and typecheck all pass. Building it surfaced and fixed several
+  real bugs in the onboarding app itself along the way (e.g. `divisionId` was never set for OAuth platforms
+  like Northwind, so billing silently never loaded).
+- **Not done: infra.** The sandbox origin has no AWS resources yet (S3 bucket, CloudFront distribution, ACM
+  cert, Route53 record, GitHub Environment). That's tracked as its own ticket,
+  [PI-15552](https://payroll-integrations.atlassian.net/browse/PI-15552), deliberately scoped to run only
+  *after* PR #6513 is approved — the PR is a draft for that reason. Until it lands, there is no sandbox origin
+  for this demo to point at.
+- **Scope change to note:** the sandbox port dropped the third fictional platform, **Contoso Pay** (no e2e
+  coverage, no test proved its marketplace-link flow worked end to end). This repo's interim frame still has
+  it — that scenario disappears when `src/frame/**` is deleted at cutover, alongside Acme (credentials flow)
+  and Northwind (OAuth flow) which remain in the real port.
+
+The token contract stays as-is across the cutover: this repo keeps minting the unsigned, JWT-shaped token
+(`src/shared/token.ts`); the sandbox's ported exchange handler decodes it. Demo telemetry already speaks the
+sandbox's wire format — `subscribeDemoEvents` (`src/shared/demo-log.ts`) accepts `pi-demo` window messages
+from `frameHost` in addition to today's same-origin `BroadcastChannel`, so the developer panel needs no
+further changes when `frameHost` switches over.
+
 ## Why a custom domain is required
 
 The SDK filters incoming messages with `message.origin === frameHost` (strict string equality) and loads the
@@ -111,6 +143,11 @@ After the certificate is issued, HTTPS enforcement is turned on in the repositor
 Verifying the domain at the organisation level (Settings → Pages → Verified domains) is recommended so the
 subdomain cannot be claimed by another Pages site if this repository is ever removed.
 
-## Ticket
+## Tickets
 
-[PI-15484](https://payroll-integrations.atlassian.net/browse/PI-15484) — Faux Embedded Onboarding via Emulated Backend.
+- [PI-15484](https://payroll-integrations.atlassian.net/browse/PI-15484) — Faux Embedded Onboarding via
+  Emulated Backend (this repo). Externally blocked on PI-15486.
+- [PI-15486](https://payroll-integrations.atlassian.net/browse/PI-15486) — sandbox build of `pi/onboarding-ui`
+  (in the `pi` monorepo). Code complete, see [pi#6513](https://github.com/payroll-integrations-inc/pi/pull/6513) (draft).
+- [PI-15552](https://payroll-integrations.atlassian.net/browse/PI-15552) — provision the sandbox origin's AWS
+  infra, scoped to start after PI-15486 merges.
