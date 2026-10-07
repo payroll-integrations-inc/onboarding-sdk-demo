@@ -24,7 +24,7 @@ function pre(value: unknown): RawHtml {
   return html`<pre class="font-mono text-xs whitespace-pre-wrap break-all m-0">${text ?? ""}</pre>`;
 }
 
-export function createDevPanel(root: HTMLElement): DevPanel {
+export function createDevPanel(root: HTMLElement, frameHost: string): DevPanel {
   const panel = element(html`
     <div class="flex flex-col gap-3">
       <div role="tablist" class="tabs tabs-lift">
@@ -126,7 +126,9 @@ export function createDevPanel(root: HTMLElement): DevPanel {
       api.logTraffic("sdk → frame", event.data, event.origin);
     }
   };
-  subscribeDemoEvents(onDemoEvent);
+  // BroadcastChannel covers today's same-origin frame; the window-message path is ready
+  // for the PI-15486 sandbox frame, which is cross-origin and can't use BroadcastChannel.
+  subscribeDemoEvents(onDemoEvent, { expectedOrigin: frameHost });
 
   const api: DevPanel = {
     logCallback(name, value) {
