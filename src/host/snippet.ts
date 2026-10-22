@@ -21,7 +21,7 @@ bootstrap({
     success: (planSponsorId) => console.log("Onboarding complete", planSponsorId),
     error: (message) => console.error("Onboarding error", message),
   },
-  // Demo only: load the frame from this site instead of secure.payrollintegrationsapp.com.
+  // Demo only: load the frame from the sandbox stage instead of secure.payrollintegrationsapp.com.
   // Leave frameHost out in production.
   frameHost: ${JSON.stringify(frameHost)},
 });`;

@@ -1,6 +1,6 @@
 {
   "name": "onboarding-sdk-demo",
-  "description": "Public demo of @payroll-integrations/onboarding-sdk running against an emulated backend",
+  "description": "Public demo of @payroll-integrations/onboarding-sdk embedding the sandbox stage of the real onboarding UI",
   "private": true,
   "license": "MIT",
   "version": "0.1.0",

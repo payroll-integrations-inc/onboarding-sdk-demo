@@ -52,12 +52,3 @@ export function query<T extends Element = HTMLElement>(root: ParentNode, selecto
 export function queryAll<T extends Element = HTMLElement>(root: ParentNode, selector: string): T[] {
   return Array.from(root.querySelectorAll<T>(selector));
 }
-
-export function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((word) => word[0]!.toUpperCase())
-    .join("");
-}

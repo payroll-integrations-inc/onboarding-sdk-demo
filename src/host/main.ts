@@ -2,11 +2,13 @@ import "../style.css";
 import { bootstrap } from "@payroll-integrations/onboarding-sdk";
 import { createDevPanel, type DevPanel } from "./dev-panel";
 import { query } from "../shared/dom";
+import { SANDBOX_ORIGIN } from "../shared/sandbox";
 import { isScenario, makeDemoToken, type Scenario } from "../shared/token";
 
 /**
  * The "customer" page. Everything on the SDK side of the iframe boundary is the real,
- * published @payroll-integrations/onboarding-sdk; everything behind it is emulated.
+ * published @payroll-integrations/onboarding-sdk; the frame is the real onboarding-ui,
+ * served from its sandbox stage, whose HTTP layer is an in-browser emulated backend.
  *
  * Two modes, decided by `?developer=true` (index.html sets `html.developer` before paint):
  *  - basic (default): the connect button and the frame, nothing else
@@ -14,9 +16,10 @@ import { isScenario, makeDemoToken, type Scenario } from "../shared/token";
  *
  * `frameHost` must be a bare origin: the SDK compares `message.origin === frameHost`
  * with strict equality before invoking any callback (onboarding-sdk/src/main.ts).
+ * `VITE_FRAME_HOST` points it at a locally served sandbox build instead.
  */
-const frameHost = location.origin;
-const DEMO_DB_KEY = "pi-demo-db";
+const frameHostOverride: string | undefined = import.meta.env.VITE_FRAME_HOST;
+const frameHost = frameHostOverride ? new URL(frameHostOverride).origin : SANDBOX_ORIGIN;
 export const developerMode = document.documentElement.classList.contains("developer");
 
 const connectButton = query<HTMLButtonElement>(document, "#connect-btn");
@@ -42,12 +45,8 @@ function currentScenario(): Scenario {
 
 function run() {
   const scenario = currentScenario();
-  // Fresh emulated backend per run (the frame shares this tab's sessionStorage).
-  try {
-    sessionStorage.removeItem(DEMO_DB_KEY);
-  } catch {
-    /* privacy mode */
-  }
+  // Each token carries a fresh onboardingUserId, which is what gives every run a fresh
+  // emulated onboarding: the sandbox keeps its state in its own origin's storage.
   panel?.clear();
   setStatus("Onboarding in progress…");
 
