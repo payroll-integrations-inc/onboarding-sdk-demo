@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { bootstrap } from "@payroll-integrations/onboarding-sdk";
 import { cdnSnippet, npmSnippet } from "./snippet";
+import { SANDBOX_ORIGIN } from "../shared/sandbox";
 import { makeDemoToken } from "../shared/token";
 
 /**
  * Contract test against the REAL published SDK: proves that the way this demo
- * configures `bootstrap()` (frameHost = location.origin, frame served at /link/start,
+ * configures `bootstrap()` (frameHost = the sandbox origin, frame served at /link/start,
  * replies with source 'pi-app') is exactly what the SDK's origin/source filter accepts.
  */
 describe("@payroll-integrations/onboarding-sdk contract", () => {
@@ -20,9 +21,9 @@ describe("@payroll-integrations/onboarding-sdk contract", () => {
   const onboardingLink = () => `https://secure.payrollintegrationsdemo.com/link?token=${makeDemoToken("happy")}&plan=3`;
 
   test("mounts an iframe at {frameHost}/link/start", () => {
-    bootstrap({ onboardingLink: onboardingLink(), frameHost: location.origin });
+    bootstrap({ onboardingLink: onboardingLink(), frameHost: SANDBOX_ORIGIN });
     const iframe = host.querySelector("iframe");
-    expect(iframe?.src).toBe(`${location.origin}/link/start`);
+    expect(iframe?.src).toBe(`${SANDBOX_ORIGIN}/link/start`);
     expect(iframe?.style.width).toBe("420px");
     expect(iframe?.style.height).toBe("600px");
   });
@@ -31,18 +32,18 @@ describe("@payroll-integrations/onboarding-sdk contract", () => {
     const success = vi.fn();
     const error = vi.fn();
     const message = vi.fn();
-    bootstrap({ onboardingLink: onboardingLink(), frameHost: location.origin, callbacks: { success, error, message } });
+    bootstrap({ onboardingLink: onboardingLink(), frameHost: SANDBOX_ORIGIN, callbacks: { success, error, message } });
 
-    window.dispatchEvent(new MessageEvent("message", { origin: location.origin, data: { source: "pi-app", type: "success", value: "703" } }));
+    window.dispatchEvent(new MessageEvent("message", { origin: SANDBOX_ORIGIN, data: { source: "pi-app", type: "success", value: "703" } }));
     expect(success).toHaveBeenCalledWith("703");
 
-    // Wrong origin: silently dropped. This is why the demo must be served from an origin root.
+    // Wrong origin: silently dropped. Only the sandbox frame can drive the callbacks.
     window.dispatchEvent(new MessageEvent("message", { origin: "https://elsewhere.example", data: { source: "pi-app", type: "success", value: "x" } }));
     expect(success).toHaveBeenCalledTimes(1);
 
     // Real SDK quirk: an error also invokes the message callback.
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    window.dispatchEvent(new MessageEvent("message", { origin: location.origin, data: { source: "pi-app", type: "error", value: "Token validation failed." } }));
+    window.dispatchEvent(new MessageEvent("message", { origin: SANDBOX_ORIGIN, data: { source: "pi-app", type: "error", value: "Token validation failed." } }));
     expect(error).toHaveBeenCalledWith("Token validation failed.");
     expect(message).toHaveBeenCalledWith("Token validation failed.");
     consoleError.mockRestore();
@@ -50,14 +51,14 @@ describe("@payroll-integrations/onboarding-sdk contract", () => {
 
   test("a frameHost with a path would never match message.origin", () => {
     const success = vi.fn();
-    bootstrap({ onboardingLink: onboardingLink(), frameHost: `${location.origin}/onboarding-sdk-demo`, callbacks: { success } });
-    window.dispatchEvent(new MessageEvent("message", { origin: location.origin, data: { source: "pi-app", type: "success", value: "x" } }));
+    bootstrap({ onboardingLink: onboardingLink(), frameHost: `${SANDBOX_ORIGIN}/onboarding-sdk-demo`, callbacks: { success } });
+    window.dispatchEvent(new MessageEvent("message", { origin: SANDBOX_ORIGIN, data: { source: "pi-app", type: "success", value: "x" } }));
     expect(success).not.toHaveBeenCalled();
   });
 
   test("calls error and throws when the link has no token", () => {
     const error = vi.fn();
-    expect(() => bootstrap({ onboardingLink: "https://example.com/link", frameHost: location.origin, callbacks: { error } })).toThrow(/token/);
+    expect(() => bootstrap({ onboardingLink: "https://example.com/link", frameHost: SANDBOX_ORIGIN, callbacks: { error } })).toThrow(/token/);
     expect(error).toHaveBeenCalled();
   });
 });

@@ -7,7 +7,7 @@
     <title>Onboarding SDK demo — Payroll Integrations</title>
     <meta
       name="description"
-      content="Click-through demo of the Payroll Integrations onboarding SDK. The real SDK, an emulated onboarding frame and backend: no credentials, nothing leaves your browser."
+      content="Click-through demo of the Payroll Integrations onboarding SDK. The real SDK and the real onboarding UI, with an emulated backend: no credentials, no data sent to Payroll Integrations."
     />
     <script>
       // Basic mode (default): just the connect button and the frame.
@@ -37,9 +37,9 @@
       <section class="flex flex-col gap-3 max-w-3xl" data-developer>
         <h1 class="text-3xl font-semibold m-0">Embed payroll onboarding in one call</h1>
         <p class="m-0 text-base">
-          This page uses the published <code>@payroll-integrations/onboarding-sdk</code> exactly as a customer would. Everything behind the
-          frame is emulated: a stand-in onboarding app and an in-browser backend with fictional payroll providers. Walk through the whole
-          flow with no account and no API key.
+          This page uses the published <code>@payroll-integrations/onboarding-sdk</code> exactly as a customer would. The frame is the real
+          onboarding app, served from a sandbox stage whose backend is emulated in your browser with fictional payroll providers. Walk
+          through the whole flow with no account and no API key.
         </p>
       </section>
 
@@ -74,9 +74,9 @@
           <div class="text-xs text-muted flex flex-col gap-1" data-developer>
             <p class="m-0">
               Things to try: Acme Payroll with Company ID <code>FAIL0000</code> or API key <code>fail</code> to see a connection error, Northwind
-              HR for the OAuth popup, Contoso Pay to skip billing, and card <code>4000 0000 0000 0002</code> for a declined payment.
+              HR for the OAuth popup, and "Simulate a declined card" on the billing step. Billing is Stripe in test mode: use card
+              <code>4242 4242 4242 4242</code> with any future expiry, CVC and ZIP.
             </p>
-            <p class="m-0">Reload the frame (right-click → Reload frame) mid-flow to see the session resume where you left off.</p>
           </div>
         </div>
 
@@ -95,14 +95,14 @@
         </div>
         <div class="card bg-base-100 border border-base-300">
           <div class="card-body gap-2">
-            <h3 class="card-title text-base">Emulated frame</h3>
-            <p class="m-0 text-muted">A stand-in for the hosted onboarding app at <code>/link/start</code>: same screens, same server-driven step definitions, same messages back to the SDK.</p>
+            <h3 class="card-title text-base">Real onboarding UI</h3>
+            <p class="m-0 text-muted">The hosted onboarding app at <code>/link/start</code>, built from the same commit as production and served from its sandbox stage.</p>
           </div>
         </div>
         <div class="card bg-base-100 border border-base-300">
           <div class="card-body gap-2">
             <h3 class="card-title text-base">Emulated backend</h3>
-            <p class="m-0 text-muted">An in-browser implementation of the onboarding API with fictional providers. No network calls, no data collected.</p>
+            <p class="m-0 text-muted">The sandbox build swaps the app's HTTP layer for an in-browser implementation of the onboarding API. Nothing reaches Payroll Integrations; Stripe runs in test mode.</p>
           </div>
         </div>
       </section>

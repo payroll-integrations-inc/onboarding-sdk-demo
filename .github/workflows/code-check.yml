@@ -22,6 +22,4 @@ jobs:
       - name: Verify build output
         run: |
           test -f dist/index.html
-          test -f dist/link/start.html
-          test -f dist/oauth.html
           test -f dist/CNAME

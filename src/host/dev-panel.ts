@@ -1,18 +1,21 @@
 import { cdnSnippet, npmSnippet, type SnippetInput } from "./snippet";
-import { subscribeDemoEvents, type ApiLogEntry, type DemoEvent } from "../shared/demo-log";
+import { subscribeDemoEvents, type ApiLogEntry } from "../shared/demo-log";
 import { element, html, query, queryAll, type RawHtml } from "../shared/dom";
-import { APP_SOURCE, SDK_SOURCE } from "../shared/messages";
+import { APP_SOURCE } from "../shared/messages";
 
 /**
  * Developer panel beside the iframe:
  *  - SDK callbacks   what `bootstrap()`'s callbacks received (what a customer's code sees)
- *  - postMessage     raw traffic in both directions, like the SDK repo's testbed page
- *  - Mock API        every emulated backend call the frame made
+ *  - postMessage     raw `pi-app` messages the frame posts to this page
+ *  - Emulated API    every call the sandbox frame's emulated backend served
  *  - Snippet         the integration code, npm and CDN flavours
+ *
+ * The SDK's own messages (token, style) are posted into the cross-origin frame, where this
+ * page cannot observe them, so the postMessage tab shows the frame → SDK direction only.
  */
 export interface DevPanel {
   logCallback(name: "success" | "error" | "message" | "throw", value: unknown): void;
-  logTraffic(direction: "sdk → frame" | "frame → sdk", data: unknown, origin: string): void;
+  logTraffic(data: unknown, origin: string): void;
   setSnippet(input: SnippetInput): void;
   clear(): void;
 }
@@ -38,15 +41,15 @@ export function createDevPanel(root: HTMLElement, frameHost: string): DevPanel {
 
         <input type="radio" name="dev-tabs" role="tab" class="tab" aria-label="postMessage" />
         <div role="tabpanel" class="tab-content bg-base-100 border-base-300 p-3">
-          <p class="text-xs text-muted mt-0">Raw window messages with <code>source</code> <code>pi-sdk</code> or <code>pi-app</code>, both directions.</p>
+          <p class="text-xs text-muted mt-0">Raw window messages with <code>source</code> <code>pi-app</code> that the frame posts to this page. The SDK's token and style messages go into the cross-origin frame, out of this page's sight.</p>
           <ol class="flex flex-col gap-2 m-0 p-0 list-none max-h-[26rem] overflow-auto" data-traffic>
             <li class="text-sm text-muted italic" data-empty>Nothing yet.</li>
           </ol>
         </div>
 
-        <input type="radio" name="dev-tabs" role="tab" class="tab" aria-label="Mock API" />
+        <input type="radio" name="dev-tabs" role="tab" class="tab" aria-label="Emulated API" />
         <div role="tabpanel" class="tab-content bg-base-100 border-base-300 p-3">
-          <p class="text-xs text-muted mt-0">Every call the frame made to the emulated backend. Nothing leaves your browser.</p>
+          <p class="text-xs text-muted mt-0">Every call the frame made to its emulated backend, as reported by the sandbox frame. None of them reach Payroll Integrations.</p>
           <ol class="flex flex-col gap-1 m-0 p-0 list-none max-h-[26rem] overflow-auto" data-api>
             <li class="text-sm text-muted italic" data-empty>Nothing yet.</li>
           </ol>
@@ -108,7 +111,7 @@ export function createDevPanel(root: HTMLElement, frameHost: string): DevPanel {
             <span class="badge badge-xs ${ok ? "badge-success" : "badge-error"}">${entry.status}</span>
             <span class="font-semibold w-12">${entry.method}</span>
             <span class="truncate flex-1">${entry.path}</span>
-            <span class="text-muted">${entry.durationMs} ms</span>
+            <span class="text-muted">${time(entry.at)}</span>
           </summary>
           <div class="collapse-content text-xs flex flex-col gap-2">
             ${entry.request !== undefined ? html`<div><span class="font-semibold">request</span>${pre(entry.request)}</div>` : ""}
@@ -119,16 +122,7 @@ export function createDevPanel(root: HTMLElement, frameHost: string): DevPanel {
     `);
   }
 
-  const onDemoEvent = (event: DemoEvent) => {
-    if (event.kind === "api") {
-      append(apiList, apiItem(event));
-    } else if (event.kind === "frame-received") {
-      api.logTraffic("sdk → frame", event.data, event.origin);
-    }
-  };
-  // BroadcastChannel covers today's same-origin frame; the window-message path is ready
-  // for the PI-15486 sandbox frame, which is cross-origin and can't use BroadcastChannel.
-  subscribeDemoEvents(onDemoEvent, { expectedOrigin: frameHost });
+  subscribeDemoEvents((entry) => append(apiList, apiItem(entry)), { expectedOrigin: frameHost });
 
   const api: DevPanel = {
     logCallback(name, value) {
@@ -143,13 +137,12 @@ export function createDevPanel(root: HTMLElement, frameHost: string): DevPanel {
         `),
       );
     },
-    logTraffic(direction, data, origin) {
-      const outbound = direction === "sdk → frame";
+    logTraffic(data, origin) {
       append(
         traffic,
         element(html`
-          <li class="flex flex-col gap-1 rounded-box p-2 ${outbound ? "bg-secondary/15" : "bg-primary/15"}">
-            <div class="flex items-center gap-2 text-xs"><span class="font-semibold">${direction}</span><span class="text-muted">${time()}</span><span class="text-muted truncate">origin ${origin}</span></div>
+          <li class="flex flex-col gap-1 rounded-box p-2 bg-primary/15">
+            <div class="flex items-center gap-2 text-xs"><span class="font-semibold">frame → sdk</span><span class="text-muted">${time()}</span><span class="text-muted truncate">origin ${origin}</span></div>
             ${pre(data)}
           </li>
         `),
@@ -168,8 +161,9 @@ export function createDevPanel(root: HTMLElement, frameHost: string): DevPanel {
 
   // Frame → SDK traffic arrives on this window; mirror it like the SDK repo's testbed does.
   window.addEventListener("message", (event: MessageEvent) => {
+    if (event.origin !== frameHost) return;
     const source = (event.data as { source?: unknown } | null)?.source;
-    if (source === APP_SOURCE || source === SDK_SOURCE) api.logTraffic("frame → sdk", event.data, event.origin);
+    if (source === APP_SOURCE) api.logTraffic(event.data, event.origin);
   });
 
   return api;
