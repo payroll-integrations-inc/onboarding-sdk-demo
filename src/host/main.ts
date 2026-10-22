@@ -18,7 +18,8 @@ import { isScenario, makeDemoToken, type Scenario } from "../shared/token";
  * with strict equality before invoking any callback (onboarding-sdk/src/main.ts).
  * `VITE_FRAME_HOST` points it at a locally served sandbox build instead.
  */
-const frameHost = import.meta.env.VITE_FRAME_HOST || SANDBOX_ORIGIN;
+const frameHostOverride: string | undefined = import.meta.env.VITE_FRAME_HOST;
+const frameHost = frameHostOverride ? new URL(frameHostOverride).origin : SANDBOX_ORIGIN;
 export const developerMode = document.documentElement.classList.contains("developer");
 
 const connectButton = query<HTMLButtonElement>(document, "#connect-btn");
